@@ -747,6 +747,7 @@ export class AssetRepository implements IAssetRepository {
         isVisible: true,
         updatedAt: { lte: updatedUntil },
         AND: [{ fileCreatedAt: { lt: lastCreationDate } }, { id: { lt: lastId } }],
+        OR: [{ deletedAt: null }, { deletedAt: { not: null } }],
       },
       include: {
         exifInfo: true,
@@ -769,6 +770,7 @@ export class AssetRepository implements IAssetRepository {
         ownerId: { in: options.userIds },
         isVisible: true,
         updatedAt: { gt: options.updatedAfter },
+        OR: [{ deletedAt: null }, { deletedAt: { not: null } }],
       },
       include: {
         exifInfo: true,

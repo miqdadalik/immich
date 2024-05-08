@@ -3,7 +3,11 @@ import { Prisma } from '@prisma/client';
 const excludeDeleted = ({ args, query }: { args: any; query: any }) => {
   if (args.where === undefined) {
     args.where = { deletedAt: null };
-  } else if (args.where.deletedAt === undefined) {
+  } else if (
+    args.where.deletedAt === undefined &&
+    !args.where.OR?.some(({ deletedAt }: any) => deletedAt !== undefined) &&
+    !args.where.AND?.some(({ deletedAt }: any) => deletedAt !== undefined)
+  ) {
     args.where.deletedAt = null;
   }
 
