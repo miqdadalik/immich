@@ -31,7 +31,7 @@
   import { assetViewingStore } from '$lib/stores/asset-viewing.store';
   import { AssetStore } from '$lib/stores/assets.store';
   import { websocketEvents } from '$lib/stores/websocket';
-  import { getPeopleThumbnailUrl } from '$lib/utils';
+  import { getPeopleThumbnailUrl, handlePromiseError } from '$lib/utils';
   import { clickOutside } from '$lib/utils/click-outside';
   import { handleError } from '$lib/utils/handle-error';
   import { isExternalUrl } from '$lib/utils/navigation';
@@ -56,6 +56,7 @@
   import { onMount } from 'svelte';
   import type { PageData } from './$types';
   import { listNavigation } from '$lib/utils/list-navigation';
+  import type { NavigationTarget } from '@sveltejs/kit';
 
   export let data: PageData;
 
@@ -137,12 +138,15 @@
       return;
     }
   };
-  afterNavigate(({ from }) => {
+
+  const handleNagigationChange = async (from: NavigationTarget | null) => {
     // Prevent setting previousRoute to the current page.
     if (from && from.route.id !== $page.route.id) {
       previousRoute = from.url.href;
     }
     if (previousPersonId !== data.person.id) {
+      const { assets } = await getPersonStatistics({ id: data.person.id });
+      numberOfAssets = assets;
       assetStore = new AssetStore({
         isArchived: false,
         personId: data.person.id,
@@ -151,6 +155,10 @@
       name = data.person.name;
       refreshAssetGrid = !refreshAssetGrid;
     }
+  };
+
+  afterNavigate(({ from }) => {
+    handlePromiseError(handleNagigationChange(from));
   });
 
   const handleUnmerge = () => {
